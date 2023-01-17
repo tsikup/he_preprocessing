@@ -18,6 +18,7 @@ This module contains functions for wsi image manipulation from
 https://github.com/CODAIT/deep-histopath/blob/master/deephistopath/preprocessing.py
 """
 import math
+import os
 from typing import List, Union
 import PIL
 import openslide
@@ -31,7 +32,8 @@ from PIL import Image, ImageDraw, ImageFont
 from openslide import OpenSlideError
 from openslide.deepzoom import DeepZoomGenerator
 from scipy.ndimage import binary_fill_holes
-from definitions import *
+
+from he_preprocessing.constants import SCALE_FACTOR
 from he_preprocessing.utils.timer import Timer
 
 # References for used modules and libraries

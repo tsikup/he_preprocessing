@@ -1,7 +1,13 @@
 import colorsys
 import numpy as np
+from PIL import ImageFont, ImageDraw, Image
+
 import image as image_util
 from matplotlib import pyplot as plt
+
+from he_preprocessing.constants import SCALE_FACTOR, TILE_TEXT_W_BORDER, TILE_TEXT_H_BORDER, FONT_PATH, TILE_TEXT_SIZE, \
+    TILE_TEXT_COLOR, TILE_TEXT_BACKGROUND_COLOR
+
 
 def np_hsv_hue_histogram(h):
     """
@@ -351,8 +357,9 @@ def pil_text(text, w_border=TILE_TEXT_W_BORDER, h_border=TILE_TEXT_H_BORDER, fon
     Returns:
       PIL image representing the text.
     """
-
-    font = ImageFont.truetype(font_path, font_size)
+    font = None
+    if font_path is not None:
+        font = ImageFont.truetype(font_path, font_size)
     x, y = ImageDraw.Draw(Image.new("RGB", (1, 1), background)).textsize(text, font)
     image = Image.new("RGB", (x + 2 * w_border, y + 2 * h_border), background)
     draw = ImageDraw.Draw(image)
@@ -486,4 +493,3 @@ def display_image_with_rgb_and_hsv_histograms(np_rgb, text=None, scale_up=False)
     combo[0:hsv_hists_r, img_c + rgb_hists_c:c] = hsv_hists
     pil_combo = image_util.np_to_pil(combo)
     pil_combo.show()
-
