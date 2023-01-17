@@ -1,9 +1,5 @@
-import os
-import glob
 import json
-
 from dotmap import DotMap
-from pprint import pprint
 
 
 def check_cell_in_tile(tile_name, cell_path):
@@ -36,10 +32,10 @@ def get_tile_coords(tile_name):
     Returns:
         DotMap(x=, y=)
     """
-    tile_coords = tile_name.split('(')[1].split(')')[0].split(',')
+    tile_coords = tile_name.split("(")[1].split(")")[0].split(",")
     coords = {}
     for entry in tile_coords:
-        key, value = entry.split('=')
+        key, value = entry.split("=")
         try:
             coords[key.strip()] = int(value.strip())
         except Exception:

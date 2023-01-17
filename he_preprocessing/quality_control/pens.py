@@ -1,5 +1,3 @@
-import numpy as np
-
 # ref: https://github.com/CODAIT/deep-histopath/blob/master/deephistopath/wsi/filter.py
 PENS_RGB = {
     "red": [

@@ -2,11 +2,6 @@
 import numpy as np
 import pandas as pd
 import os
-import sys
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
-
 from he_preprocessing.normalization import (
     stainNorm_Vahadane,
     stainNorm_Macenko,
@@ -184,7 +179,9 @@ class StainNormalizer:
         if reference_dir is not None:
             dataset_level_ref = reference_dir
             dataset_df = pd.read_csv(
-                os.path.join(dataset_level_ref, "stain_vectors_dataset_level_reference.csv")
+                os.path.join(
+                    dataset_level_ref, "stain_vectors_dataset_level_reference.csv"
+                )
             )
             dataset_maxC_reference = np.fromstring(
                 dataset_df[["saturation_vector_0", "saturation_vector_1"]].to_numpy()[0]

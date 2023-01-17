@@ -5,18 +5,10 @@ E. Reinhard, M. Adhikhmin, B. Gooch, and P. Shirley, ‘Color transfer between i
 """
 
 from __future__ import division
-
 import cv2 as cv
 import numpy as np
-import sys
-import os
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
-
-# import stain_utils as ut
 import he_preprocessing.normalization.stain_utils as ut
-from definitions import bcolors
+from he_preprocessing.constants import bcolors
 
 
 def lab_split(I):

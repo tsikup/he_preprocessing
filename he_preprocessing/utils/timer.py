@@ -3,8 +3,8 @@ import datetime
 
 class Timer:
     """
-  Class for displaying elapsed time.
-  """
+    Class for displaying elapsed time.
+    """
 
     def __init__(self):
         self.start = datetime.datetime.now()

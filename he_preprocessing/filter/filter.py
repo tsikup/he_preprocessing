@@ -31,22 +31,17 @@ import skimage.morphology as sk_morphology
 import skimage.segmentation as sk_segmentation
 from PIL import Image, ImageDraw
 from shapely import geometry
-from definitions import (
-    ROOT_DIR,
-    FILTER_DIR,
-    DEST_TRAIN_DIR,
-    ALL_FILTERS_DIR,
-    THUMBNAIL_DIR,
+
+from he_preprocessing.constants import (
+    CELL_COLORS,
     IMAGE_EXT,
     THUMBNAIL_EXT,
     THUMBNAIL_SIZE,
-    OUTPUT_IMG_DIR,
     bcolors,
 )
 from he_preprocessing.quality_control import pens
 from he_preprocessing.utils import image as ut_image
 from he_preprocessing.utils.image import (
-    DEBUG,
     np_info,
     pil_to_np,
     save_img,
@@ -72,7 +67,7 @@ def filter_rgb_to_grayscale(np_img, output_type="uint8", debug=False):
     Returns:
       Grayscale image as NumPy array with shape (h, w).
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     # # Another common RGB ratio possibility: [0.299, 0.587, 0.114]
     # grayscale = np.dot(np_img[..., :3], [0.2125, 0.7154, 0.0721])
@@ -81,8 +76,8 @@ def filter_rgb_to_grayscale(np_img, output_type="uint8", debug=False):
         grayscale = grayscale / 255.0
     else:
         pass
-    if debug or DEBUG:
-        np_info(grayscale, "Gray", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(grayscale, "Gray", t.elapsed(), debug=debug)
     return grayscale
 
 
@@ -98,15 +93,15 @@ def filter_invert(np_img, output_type="uint8", debug=False):
     Returns:
       Inverted image.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
-    inverted = ut_image.invert(np_img, output_type)
+    inverted = ut_image.invert(np_img)
     if output_type == "float":
         inverted = (inverted / 255).astype("float")
     else:
         pass
-    if debug or DEBUG:
-        np_info(inverted, "Inverted", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(inverted, "Inverted", t.elapsed(), debug=(debug))
     return inverted
 
 
@@ -121,13 +116,11 @@ def filter_contrast_stretch(np_img, low=40, high=60, debug=False):
     Returns:
       Image as NumPy array with contrast enhanced.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     contrast_stretch = ut_image.contrast_stretch(np_img, low, high)
-    if debug or DEBUG:
-        np_info(
-            contrast_stretch, "Contrast Stretch", t.elapsed(), debug=(debug or DEBUG)
-        )
+    if debug:
+        np_info(contrast_stretch, "Contrast Stretch", t.elapsed(), debug=(debug))
     return contrast_stretch
 
 
@@ -142,7 +135,7 @@ def filter_histogram_equalization(np_img, nbins=256, output_type="uint8", debug=
     Returns:
        NumPy array (float or uint8) with contrast enhanced by histogram equalization.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     # if uint8 type and nbins is specified, convert to float so that nbins can be a value besides 256
     if np_img.dtype == "uint8" and nbins != 256:
@@ -154,8 +147,8 @@ def filter_histogram_equalization(np_img, nbins=256, output_type="uint8", debug=
         pass
     else:
         hist_equ = (hist_equ * 255).astype("uint8")
-    if debug or DEBUG:
-        np_info(hist_equ, "Hist Equalization", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(hist_equ, "Hist Equalization", t.elapsed(), debug=(debug))
     return hist_equ
 
 
@@ -174,7 +167,7 @@ def filter_adaptive_equalization(
     Returns:
        NumPy array (float or uint8) with contrast enhanced by adaptive equalization.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     adapt_equ = sk_exposure.equalize_adapthist(
         np_img, nbins=nbins, clip_limit=clip_limit
@@ -183,8 +176,8 @@ def filter_adaptive_equalization(
         pass
     else:
         adapt_equ = (adapt_equ * 255).astype("uint8")
-    if debug or DEBUG:
-        np_info(adapt_equ, "Adapt Equalization", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(adapt_equ, "Adapt Equalization", t.elapsed(), debug=(debug))
     return adapt_equ
 
 
@@ -198,15 +191,15 @@ def filter_local_equalization(np_img, disk_size=50, debug=False):
     Returns:
       NumPy array with contrast enhanced using local equalization.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     if np_img.shape[-1] == 3:
         np_img = ut_image.rgb2gray(np_img)
     local_equ = sk_filters.rank.equalize(
         np_img, footprint=sk_morphology.disk(disk_size)
     )
-    if debug or DEBUG:
-        np_info(local_equ, "Local Equalization", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(local_equ, "Local Equalization", t.elapsed(), debug=(debug))
     return local_equ
 
 
@@ -220,15 +213,15 @@ def filter_rgb_to_hed(np_img, output_type="uint8", debug=False):
     Returns:
       NumPy array (float or uint8) with HED channels.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     hed = ut_image.rgb2hed(np_img)
     if output_type == "float":
         hed = sk_exposure.rescale_intensity(hed, out_range=(0.0, 1.0))
     else:
         hed = (sk_exposure.rescale_intensity(hed, out_range=(0, 255))).astype("uint8")
-    if debug or DEBUG:
-        np_info(hed, "RGB to HED", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(hed, "RGB to HED", t.elapsed(), debug=(debug))
     return hed
 
 
@@ -243,11 +236,11 @@ def filter_rgb_to_hsd(np_img, debug=False):
     Returns:
       Image as NumPy array in HSD representation.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     hsd = ut_image.rgb2hsd(np_img)
-    if debug or DEBUG:
-        np_info(hsd, "RGB to HSD", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(hsd, "RGB to HSD", t.elapsed(), debug=(debug))
     return hsd
 
 
@@ -262,11 +255,11 @@ def filter_hsd_to_rgb(np_img, debug=False):
     Returns:
       Image as NumPy array in RGB representation.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     rgb = ut_image.hsd2rgb(np_img)
-    if debug or DEBUG:
-        np_info(rgb, "HSD to RGB", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(rgb, "HSD to RGB", t.elapsed(), debug=(debug))
     return rgb
 
 
@@ -279,11 +272,11 @@ def filter_rgb_to_hsv(np_img, debug=False):
     Returns:
       Image as NumPy array in HSV representation.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     hsv = ut_image.rgb2hsv(np_img)
-    if debug or DEBUG:
-        np_info(hsv, "RGB to HSV", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(hsv, "RGB to HSV", t.elapsed(), debug=(debug))
     return hsv
 
 
@@ -299,7 +292,7 @@ def filter_hsv_to_h(hsv, flatten=False, output_type="int", debug=False):
     Returns:
       Hue values (float or int) as a 1-dimensional NumPy array.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     h = hsv[:, :, 0]
     if flatten:
@@ -307,8 +300,8 @@ def filter_hsv_to_h(hsv, flatten=False, output_type="int", debug=False):
     if output_type == "int":
         h *= 360
         h = h.astype("int")
-    if debug or DEBUG:
-        np_info(hsv, "HSV to H", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(hsv, "HSV to H", t.elapsed(), debug=(debug))
     return h
 
 
@@ -322,13 +315,13 @@ def filter_hsv_to_s(hsv, flatten=False, debug=False):
     Returns:
       Saturation values as a 1-dimensional NumPy array.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     s = hsv[:, :, 1]
     if flatten:
         s = s.flatten()
-    if debug or DEBUG:
-        np_info(hsv, "HSV to S", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(hsv, "HSV to S", t.elapsed(), debug=(debug))
     return s
 
 
@@ -342,13 +335,13 @@ def filter_hsv_to_v(hsv, flatten=False, debug=False):
     Returns:
       Value values as a 1-dimensional NumPy array.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     v = hsv[:, :, 2]
     if flatten:
         v = v.flatten()
-    if debug or DEBUG:
-        np_info(hsv, "HSV to S", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(hsv, "HSV to S", t.elapsed(), debug=(debug))
     return v
 
 
@@ -363,15 +356,15 @@ def filter_hed_to_hematoxylin(np_img, output_type="uint8", debug=False):
     Returns:
       NumPy array for Hematoxylin channel.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     hema = np_img[:, :, 0]
     if output_type == "float":
         hema = sk_exposure.rescale_intensity(hema, out_range=(0.0, 1.0))
     else:
         hema = (sk_exposure.rescale_intensity(hema, out_range=(0, 255))).astype("uint8")
-    if debug or DEBUG:
-        np_info(hema, "HED to Hematoxylin", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(hema, "HED to Hematoxylin", t.elapsed(), debug=(debug))
     return hema
 
 
@@ -386,7 +379,7 @@ def filter_hed_to_eosin(np_img, output_type="uint8", debug=False):
     Returns:
       NumPy array for Eosin channel.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     eosin = np_img[:, :, 1]
     if output_type == "float":
@@ -395,8 +388,8 @@ def filter_hed_to_eosin(np_img, output_type="uint8", debug=False):
         eosin = (sk_exposure.rescale_intensity(eosin, out_range=(0, 255))).astype(
             "uint8"
         )
-    if debug or DEBUG:
-        np_info(eosin, "HED to Eosin", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(eosin, "HED to Eosin", t.elapsed(), debug=(debug))
     return eosin
 
 
@@ -412,14 +405,14 @@ def filter_kmeans_segmentation(np_img, compactness=10, n_segments=800, debug=Fal
       NumPy array (uint8) representing 3-channel RGB image where each segment has been colored based on the average
       color for that segment.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     labels = sk_segmentation.slic(
         np_img, compactness=compactness, n_segments=n_segments
     )
     result = sk_color.label2rgb(labels, np_img, kind="avg")
-    if debug or DEBUG:
-        np_info(result, "K-Means Segmentation", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(result, "K-Means Segmentation", t.elapsed(), debug=(debug))
     return result
 
 
@@ -438,7 +431,7 @@ def filter_rag_threshold(
       NumPy array (uint8) representing 3-channel RGB image where each segment has been colored based on the average
       color for that segment (and similar segments have been combined).
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     labels = sk_segmentation.slic(
         np_img, compactness=compactness, n_segments=n_segments
@@ -446,8 +439,8 @@ def filter_rag_threshold(
     g = sk_future.graph.rag_mean_color(np_img, labels)
     labels2 = sk_future.graph.cut_threshold(labels, g, threshold)
     result = sk_color.label2rgb(labels2, np_img, kind="avg")
-    if debug or DEBUG:
-        np_info(result, "RAG Threshold", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(result, "RAG Threshold", t.elapsed(), debug=(debug))
     return result
 
 
@@ -463,7 +456,7 @@ def filter_threshold(np_img, threshold, output_type="bool", debug=False):
       NumPy array representing a mask where a pixel has a value (T, 1.0, or 255) if the corresponding input array
       pixel exceeds the threshold value.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     result = np_img > threshold
     if output_type == "bool":
@@ -472,8 +465,8 @@ def filter_threshold(np_img, threshold, output_type="bool", debug=False):
         result = result.astype(float)
     else:
         result = result.astype("uint8") * 255
-    if debug or DEBUG:
-        np_info(result, "Threshold", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(result, "Threshold", t.elapsed(), debug=(debug))
     return result
 
 
@@ -497,7 +490,7 @@ def filter_green_channel(
     Returns:
       NumPy array representing a mask where pixels above a particular green channel threshold have been masked out.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
 
     g = np_img[:, :, 1]
@@ -509,7 +502,7 @@ def filter_green_channel(
         and (avoid_overmask is True)
     ):
         new_green_thresh = math.ceil((255 - green_thresh) / 2 + green_thresh)
-        if debug or DEBUG:
+        if debug:
             print(
                 "Mask percentage %3.2f%% >= overmask threshold %3.2f%% for Remove Green Channel green_thresh=%d, so try %d"
                 % (mask_percentage, overmask_thresh, green_thresh, new_green_thresh)
@@ -526,8 +519,8 @@ def filter_green_channel(
     else:
         np_img = np_img.astype("uint8") * 255
 
-    if debug or DEBUG:
-        np_info(np_img, "Filter Green Channel", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(np_img, "Filter Green Channel", t.elapsed(), debug=(debug))
     return np_img
 
 
@@ -552,7 +545,7 @@ def filter_red(
     Returns:
       NumPy array representing the mask.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     r = rgb[:, :, 0] > red_lower_thresh
     g = rgb[:, :, 1] < green_upper_thresh
@@ -564,8 +557,8 @@ def filter_red(
         result = result.astype(float)
     else:
         result = result.astype("uint8") * 255
-    if debug or DEBUG:
-        np_info(result, "Filter Red", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(result, "Filter Red", t.elapsed(), debug=(debug))
     return result
 
 
@@ -579,7 +572,7 @@ def filter_red_pen(rgb, output_type="bool", debug=False):
     Returns:
       NumPy array representing the mask.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     result = (
         filter_red(
@@ -652,8 +645,8 @@ def filter_red_pen(rgb, output_type="bool", debug=False):
         result = result.astype(float)
     else:
         result = result.astype("uint8") * 255
-    if debug or DEBUG:
-        np_info(result, "Filter Red Pen", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(result, "Filter Red Pen", t.elapsed(), debug=debug)
     return result
 
 
@@ -680,7 +673,7 @@ def filter_green(
     Returns:
       NumPy array representing the mask.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     r = rgb[:, :, 0] < red_upper_thresh
     g = rgb[:, :, 1] > green_lower_thresh
@@ -692,8 +685,8 @@ def filter_green(
         result = result.astype(float)
     else:
         result = result.astype("uint8") * 255
-    if debug or DEBUG:
-        np_info(result, "Filter Green", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(result, "Filter Green", t.elapsed(), debug=(debug))
     return result
 
 
@@ -707,7 +700,7 @@ def filter_green_pen(rgb, output_type="bool", debug=False):
     Returns:
       NumPy array representing the mask.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     result = (
         filter_green(
@@ -829,8 +822,8 @@ def filter_green_pen(rgb, output_type="bool", debug=False):
         result = result.astype(float)
     else:
         result = result.astype("uint8") * 255
-    if debug or DEBUG:
-        np_info(result, "Filter Green Pen", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(result, "Filter Green Pen", t.elapsed(), debug=(debug))
     return result
 
 
@@ -855,7 +848,7 @@ def filter_blue(
     Returns:
       NumPy array representing the mask.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     r = rgb[:, :, 0] < red_upper_thresh
     g = rgb[:, :, 1] < green_upper_thresh
@@ -867,8 +860,8 @@ def filter_blue(
         result = result.astype(float)
     else:
         result = result.astype("uint8") * 255
-    if debug or DEBUG:
-        np_info(result, "Filter Blue", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(result, "Filter Blue", t.elapsed(), debug=(debug))
     return result
 
 
@@ -882,7 +875,7 @@ def filter_blue_pen(rgb, output_type="bool", debug=False):
     Returns:
       NumPy array representing the mask.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     result = (
         filter_blue(
@@ -976,8 +969,8 @@ def filter_blue_pen(rgb, output_type="bool", debug=False):
         result = result.astype(float)
     else:
         result = result.astype("uint8") * 255
-    if debug or DEBUG:
-        np_info(result, "Filter Blue Pen", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(result, "Filter Blue Pen", t.elapsed(), debug=(debug))
     return result
 
 
@@ -992,7 +985,7 @@ def filter_grays(rgb, tolerance=15, output_type="bool", debug=False):
     Returns:
       NumPy array representing a mask where pixels with similar red, green, and blue values have been masked out.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     (h, w, c) = rgb.shape
 
@@ -1008,8 +1001,8 @@ def filter_grays(rgb, tolerance=15, output_type="bool", debug=False):
         result = result.astype(float)
     else:
         result = result.astype("uint8") * 255
-    if debug or DEBUG:
-        np_info(result, "Filter Grays", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(result, "Filter Grays", t.elapsed(), debug=(debug))
     return result
 
 
@@ -1035,7 +1028,7 @@ def filter_remove_small_objects(
     Returns:
       NumPy array (bool, float, or uint8).
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
 
     rem_sm = np_img.astype(bool)  # make sure mask is boolean
@@ -1063,8 +1056,8 @@ def filter_remove_small_objects(
     else:
         np_img = np_img.astype("uint8") * 255
 
-    if debug or DEBUG:
-        np_info(np_img, "Remove Small Objs", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(np_img, "Remove Small Objs", t.elapsed(), debug=(debug))
     return np_img
 
 
@@ -1079,7 +1072,7 @@ def filter_remove_small_holes(np_img, min_size=3000, output_type="uint8", debug=
     Returns:
       NumPy array (bool, float, or uint8).
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
 
     rem_sm = sk_morphology.remove_small_holes(np_img, area_threshold=min_size)
@@ -1091,8 +1084,8 @@ def filter_remove_small_holes(np_img, min_size=3000, output_type="uint8", debug=
     else:
         rem_sm = rem_sm.astype("uint8") * 255
 
-    if debug or DEBUG:
-        np_info(rem_sm, "Remove Small Holes", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(rem_sm, "Remove Small Holes", t.elapsed(), debug=(debug))
     return rem_sm
 
 
@@ -1111,7 +1104,7 @@ def filter_hysteresis_threshold(
     Returns:
       NumPy array (bool, float, or uint8) where True, 1.0, and 255 represent a pixel above hysteresis threshold.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     hyst = sk_filters.apply_hysteresis_threshold(np_img, low, high)
     if output_type == "bool":
@@ -1120,8 +1113,8 @@ def filter_hysteresis_threshold(
         hyst = hyst.astype(float)
     else:
         hyst = (255 * hyst).astype("uint8")
-    if debug or DEBUG:
-        np_info(hyst, "Hysteresis Threshold", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(hyst, "Hysteresis Threshold", t.elapsed(), debug=(debug))
     return hyst
 
 
@@ -1136,7 +1129,7 @@ def filter_otsu_threshold(np_img, output_type="uint8", debug=False):
     Returns:
       NumPy array (bool, float, or uint8) where True, 1.0, and 255 represent a pixel above Otsu threshold.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     otsu_thresh_value = sk_filters.threshold_otsu(np_img)
     otsu = np_img > otsu_thresh_value
@@ -1146,8 +1139,8 @@ def filter_otsu_threshold(np_img, output_type="uint8", debug=False):
         otsu = otsu.astype(float)
     else:
         otsu = otsu.astype("uint8") * 255
-    if debug or DEBUG:
-        np_info(otsu, "Otsu Threshold", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(otsu, "Otsu Threshold", t.elapsed(), debug=(debug))
     return otsu
 
 
@@ -1163,7 +1156,7 @@ def filter_local_otsu_threshold(np_img, disk_size=3, output_type="uint8", debug=
     Returns:
       NumPy array (bool, float, or uint8) where local Otsu threshold values have been applied to original image.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     if np_img.shape[-1] == 3:
         np_img = filter_rgb_to_grayscale(np_img)
@@ -1174,8 +1167,8 @@ def filter_local_otsu_threshold(np_img, disk_size=3, output_type="uint8", debug=
         local_otsu = local_otsu.astype(float)
     else:
         local_otsu = local_otsu.astype("uint8") * 255
-    if debug or DEBUG:
-        np_info(local_otsu, "Otsu Local Threshold", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(local_otsu, "Otsu Local Threshold", t.elapsed(), debug=(debug))
     return local_otsu
 
 
@@ -1194,7 +1187,7 @@ def filter_entropy(
     Returns:
       NumPy array (bool, float, or uint8) where True, 1.0, and 255 represent a measure of complexity.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     if np_img.shape[-1] == 3:
         np_img = filter_rgb_to_grayscale(np_img)
@@ -1208,8 +1201,8 @@ def filter_entropy(
         entr = entr.astype(float)
     else:
         entr = entr.astype("uint8") * 255
-    if debug or DEBUG:
-        np_info(entr, "Entropy", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(entr, "Entropy", t.elapsed(), debug=(debug))
     return entr
 
 
@@ -1234,7 +1227,7 @@ def filter_canny(
     Returns:
       NumPy array (bool, float, or uint8) representing Canny edge map (binary image).
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     if np_img.shape[-1] == 3:
         np_img = filter_rgb_to_grayscale(np_img)
@@ -1247,8 +1240,8 @@ def filter_canny(
         can = can.astype(float)
     else:
         can = can.astype("uint8") * 255
-    if debug or DEBUG:
-        np_info(can, "Canny Edges", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(can, "Canny Edges", t.elapsed(), debug=(debug))
     return can
 
 
@@ -1262,15 +1255,15 @@ def mask_percent(np_img, debug=False):
     Returns:
       The percentage of the NumPy array that is masked.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     if (len(np_img.shape) == 3) and (np_img.shape[2] == 3):
         np_sum = np_img[:, :, 0] + np_img[:, :, 1] + np_img[:, :, 2]
         mask_percentage = 100 - np.count_nonzero(np_sum) / np_sum.size * 100
     else:
         mask_percentage = 100 - np.count_nonzero(np_img) / np_img.size * 100
-    if debug or DEBUG:
-        np_info(mask_percentage, "Mask Percentage", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(mask_percentage, "Mask Percentage", t.elapsed(), debug=(debug))
     return mask_percentage
 
 
@@ -1354,13 +1347,13 @@ def keep_tile(
     Returns:
       A Boolean indicating whether a tile should be kept for future usage.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     check = ut_image.keep_tile(
         tile, tile_size, tissue_threshold, pens_threshold, roi_mask, pad
     )
-    if debug or DEBUG:
-        np_info(None, "Keep tile", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(None, "Keep tile", t.elapsed(), debug=(debug))
     return check
 
 
@@ -1375,7 +1368,7 @@ def tissue_percent_otsu(np_img, threshold=None, debug=False):
     Returns:
       The percentage of the NumPy array that is tissue.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     if threshold is None:
         threshold = otsu_threshold(np_img, debug=debug)
@@ -1383,8 +1376,8 @@ def tissue_percent_otsu(np_img, threshold=None, debug=False):
     np_tile_hist = bw_histogram(np_img, debug=debug)
     tissue_perc = np.sum(np_tile_hist[:threshold]) / np.sum(np_tile_hist)
     # tissue_perc = np.round(tissue_perc, decimals=5) if tissue_perc > 0 else 0
-    if debug or DEBUG:
-        np_info(None, "Tissue Percentage Otsu", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(None, "Tissue Percentage Otsu", t.elapsed(), debug=(debug))
     return tissue_perc
 
 
@@ -1399,10 +1392,10 @@ def background_percent_otsu(np_img, threshold=None, debug=False):
     Returns:
       The percentage of the NumPy array that is not tissue.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
-    if debug or DEBUG:
-        np_info(None, "Background Percentage Otsu", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(None, "Background Percentage Otsu", t.elapsed(), debug=(debug))
     return 1.0 - tissue_percent_otsu(np_img, threshold, debug=debug)
 
 
@@ -1420,11 +1413,11 @@ def bw_histogram(np_img, max_value="auto", debug=False):
     Returns:
       histogram
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     np_hist = ut_image.bw_histogram(np_img, max_value)
-    if debug or DEBUG:
-        np_info(None, "BW Histogram", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(None, "BW Histogram", t.elapsed(), debug=(debug))
     return np_hist
 
 
@@ -1440,7 +1433,7 @@ def otsu_threshold(np_img, debug=False):
     """
     # heavily inspired by scikit-image otsu implementation
     # https://github.com/scikit-image/scikit-image/blob/master/skimage/filters/thresholding.py#L237
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     np_hist = bw_histogram(np_img, debug=debug)
 
@@ -1466,8 +1459,8 @@ def otsu_threshold(np_img, debug=False):
 
     idx = np.argmax(variance12)
     otsu_th = bins[:-1][idx]
-    if debug or DEBUG:
-        np_info(None, "Otsu Threshold", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(None, "Otsu Threshold", t.elapsed(), debug=(debug))
     return otsu_th
 
 
@@ -1481,7 +1474,7 @@ def get_microtome_artifact(img, debug=False):
     Returns:
         mask for microtome artifact
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     gray = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
     ret2, gray = cv.threshold(gray, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
@@ -1490,8 +1483,8 @@ def get_microtome_artifact(img, debug=False):
     closing = 255 - closing
     kernel = np.ones((10, 10), np.uint8)
     microtome_mask = cv.morphologyEx(closing, cv.MORPH_CLOSE, kernel)
-    if debug or DEBUG:
-        np_info(microtome_mask, "Mask RGB", t.elapsed(), debug=(debug or DEBUG))
+    if debug:
+        np_info(microtome_mask, "Mask RGB", t.elapsed(), debug=(debug))
     return np.array(255 - microtome_mask)
 
 
@@ -1517,9 +1510,6 @@ def generate_tile_cell_mask(img_path, out_path, debug=False):
     )
     if not tile_cells_csv.empty:
         tile_cells_csv.sort_values(by=["cellID"], ignore_index=True, inplace=True)
-    cell_colors_df = pd.read_csv(
-        os.path.join(ROOT_DIR, "assets", "cell_color_coding.csv")
-    )
 
     tile_x = int(img_path.split("x=")[1].split(",")[0])
     tile_y = int(img_path.split("y=")[1].split(",")[0])
@@ -1579,8 +1569,8 @@ def generate_tile_cell_mask(img_path, out_path, debug=False):
             overlay1 = ImageDraw.Draw(nucleusOverlay)
             overlay1.polygon(
                 nucleusXY,
-                fill=cell_colors_df[cell_type].get(0),
-                outline=cell_colors_df[cell_type].get(0),
+                fill=CELL_COLORS[cell_type]["cname"],
+                outline=CELL_COLORS[cell_type]["cname"],
             )
 
             # Cell ROI
@@ -1621,8 +1611,8 @@ def generate_tile_cell_mask(img_path, out_path, debug=False):
             overlay2 = ImageDraw.Draw(cellOverlay)
             overlay2.polygon(
                 cellXY,
-                fill=cell_colors_df[cell_type].get(0),
-                outline=cell_colors_df[cell_type].get(0),
+                fill=CELL_COLORS[cell_type]["cname"],
+                outline=CELL_COLORS[cell_type]["cname"],
             )
         except Exception as e:
             print(
@@ -1655,10 +1645,6 @@ def generate_cell_mask(img_path, out_path, save_colors=False, debug=False):
 
     cells_csv = pd.read_csv(os.path.join(corepath, "cells_info.csv"))
     cells_csv.sort_values(by=["cellID"], ignore_index=True, inplace=True)
-
-    cell_colors_df = pd.read_csv(
-        os.path.join(ROOT_DIR, "assets", "cell_color_coding.csv")
-    )
 
     tissue_coordinates_df = pd.read_csv(
         os.path.join(corepath, "tissue_coordinates.csv")
@@ -1719,8 +1705,8 @@ def generate_cell_mask(img_path, out_path, save_colors=False, debug=False):
             overlay1 = ImageDraw.Draw(nucleusOverlay)
             overlay1.polygon(
                 nucleusXY,
-                fill=cell_colors_df[cell_type].get(0),
-                outline=cell_colors_df[cell_type].get(0),
+                fill=CELL_COLORS[cell_type]["cname"],
+                outline=CELL_COLORS[cell_type]["cname"],
             )
 
             # Cell ROI
@@ -1758,8 +1744,8 @@ def generate_cell_mask(img_path, out_path, save_colors=False, debug=False):
             overlay2 = ImageDraw.Draw(cellOverlay)
             overlay2.polygon(
                 cellXY,
-                fill=cell_colors_df[cell_type].get(0),
-                outline=cell_colors_df[cell_type].get(0),
+                fill=CELL_COLORS[cell_type]["cname"],
+                outline=CELL_COLORS[cell_type]["cname"],
             )
         except Exception as e:
             print(
@@ -1786,7 +1772,7 @@ def apply_image_filters(
     info=None,
     save=False,
     display=False,
-    output_dir=FILTER_DIR,
+    output_dir=None,
     debug=False,
 ):
     """
@@ -1803,26 +1789,13 @@ def apply_image_filters(
     Returns:
       Resulting filtered image as a NumPy array.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
-    if filters2apply is None:
-        filters2apply = {
-            "tileSize": 512,
-            "blurriness_threshold": 100,
-            "apply_mask": False,
-            "mask_background": [255, 255, 255],
-            "green": False,
-            "grays": False,
-            "redPen": False,
-            "greenPen": False,
-            "bluePen": False,
-            "remove_microtome_artifacts": False,
-            "remove_small_objects": False,
-            "stain_norm": True,
-            "stain_norm_luminosity": True,
-            "stain_norm_method": "macenko",
-            "keep_tile_percentage": None,
-        }
+
+    assert filters2apply is not None, "Please specify the dictionary `filters2apply`"
+    if save:
+        assert output_dir is not None, "Please specify `output_dir`."
+
     rgb = np_img
     save_display(
         save,
@@ -1945,7 +1918,11 @@ def apply_image_filters(
         )
         rgb = stain_normalizer.transform(rgb.astype(np.uint8), slide=slide)
         if filters2apply["stain_norm_mask"]:
-            rgb = ut_image.mask_rgb(rgb, ut_image.get_tissue_mask(rgb), background=filters2apply["constant_pad_value"])
+            rgb = ut_image.mask_rgb(
+                rgb,
+                ut_image.get_tissue_mask(rgb),
+                background=filters2apply["constant_pad_value"],
+            )
         save_display(
             save,
             display,
@@ -2049,23 +2026,30 @@ def apply_image_filters(
             output_dir=output_dir,
         )
 
-    if debug or DEBUG:
-        np_info(
-            img, "Apply predefined image filters", t.elapsed(), debug=(debug or DEBUG)
-        )
+    if debug:
+        np_info(img, "Apply predefined image filters", t.elapsed(), debug=(debug))
     return img
 
 
 def apply_filters_to_slide(
-    slide_f, filters2apply=None, downsample=32, save=False, display=False, debug=False
+    slide_f,
+    filters2apply=None,
+    downsample=32,
+    save=False,
+    display=False,
+    output_dir=None,
+    debug=False,
 ):
     """
     Apply a set of filters to a slide and optionally save and/or display filtered images.
     Args:
       slide_f: The slide filepath.
       filters2apply: Dictionary of filters to apply. If None, the default filters will be applied.
+      downsample: Downsampling factor.
       save: If True, save filtered images.
       display: If True, display filtered images to screen.
+      output_dir: Where to save the filtered slide.
+      debug:
     Returns:
       Tuple consisting of 1) the resulting filtered image as a NumPy array, and 2) dictionary of image information
       (used for HTML page generation).
@@ -2076,8 +2060,11 @@ def apply_filters_to_slide(
 
     info = dict()
 
-    if save and not os.path.exists(DEST_TRAIN_DIR):
-        os.makedirs(DEST_TRAIN_DIR)
+    if save:
+        assert output_dir is not None, "Please specify `output_dir`."
+
+    if save and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     np_orig, d_factor = ut_image.open_slide_np(slide_f, downsample=downsample)
     filtered_np_img = apply_image_filters(
         np_orig,
@@ -2090,21 +2077,21 @@ def apply_filters_to_slide(
     )
 
     # if save:
-    #     if debug or DEBUG:
+    #     if debug :
     #         t1 = Timer()
     #     result_path = get_filter_image_result(imageName)
     #     pil_img = ut_image.np_to_pil(filtered_np_img)
     #     pil_img.save(result_path)
     #     print("%-20s | Time: %-14s  Name: %s" % ("Save Image", str(t1.elapsed()), result_path))
     #
-    #     if debug or DEBUG:
+    #     if debug :
     #         t1 = Timer()
     #     thumbnail_path = get_filter_thumbnail_result(slide_num)
     #     save_thumbnail(pil_img, THUMBNAIL_SIZE, thumbnail_path)
-    #     if debug or DEBUG:
+    #     if debug :
     #         print("%-20s | Time: %-14s  Name: %s" % ("Save Thumbnail", str(t1.elapsed()), thumbnail_path))
 
-    if debug or DEBUG:
+    if debug:
         print("Slide #%03d processing time: %s\n" % (imageName, str(t.elapsed())))
 
     return filtered_np_img
@@ -2116,10 +2103,10 @@ def apply_filters_to_image(
     slide=None,
     filters2apply=None,
     save=True,
-    output_dir=FILTER_DIR,
-    output_dir_filters=ALL_FILTERS_DIR,
+    output_dir=None,
+    output_dir_filters=None,
     output_roi_dir=None,
-    thumbnail_dir=THUMBNAIL_DIR,
+    thumbnail_dir=None,
     image_name=None,
     image_ext=IMAGE_EXT,
     save_each_filter=False,
@@ -2147,7 +2134,7 @@ def apply_filters_to_image(
       Tuple consisting of 1) the resulting filtered image as a NumPy array, and 2) dictionary of image information
       (used for HTML page generation).
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
     if image_name is not None:
         print("Processing image %s" % image_name)
@@ -2199,7 +2186,7 @@ def apply_filters_to_image(
         #         print("Image %s is blurry. Discarding...\n" % image_name)
         #         return None, None
 
-        if debug or DEBUG:
+        if debug:
             t1 = Timer()
         save_img(filtered_np_img, result_path)
         if output_roi_dir is not None:
@@ -2208,32 +2195,32 @@ def apply_filters_to_image(
                 output_roi_dir, image_name + "_mask." + image_ext
             )
             os.symlink(roi_f, roi_result_path)
-        if debug or DEBUG:
+        if debug:
             print(
                 "%-20s | Time: %-14s  Name: %s"
                 % ("Save Image", str(t1.elapsed()), result_path)
             )
 
         if thumbnail_dir is not None:
-            if debug or DEBUG:
+            if debug:
                 t1 = Timer()
             thumbnail_path = os.path.join(
                 thumbnail_dir, image_name + "." + THUMBNAIL_EXT
             )
             save_thumbnail(filtered_np_img, THUMBNAIL_SIZE, thumbnail_path)
-            if debug or DEBUG:
+            if debug:
                 print(
                     "%-20s | Time: %-14s  Name: %s"
                     % ("Save Thumbnail", str(t1.elapsed()), thumbnail_path)
                 )
 
-    if debug or DEBUG:
+    if debug:
         print("Image %s processing time: %s\n" % (image_name, str(t.elapsed())))
         np_info(
             filtered_np_img,
             "Apply filters to image",
             t.elapsed(),
-            debug=(debug or DEBUG),
+            debug=(debug),
         )
     return filtered_np_img, info
 
@@ -2247,8 +2234,8 @@ def save_display(
     filter_num,
     display_text,
     file_text,
-    output_dir=OUTPUT_IMG_DIR,
-    thumbnail_dir=THUMBNAIL_DIR,
+    output_dir=None,
+    thumbnail_dir=None,
     image_ext=IMAGE_EXT,
     display_mask_percentage=True,
     debug=False,
@@ -2325,8 +2312,8 @@ def save_filtered_image(
     slide_name,
     filter_num,
     filter_text,
-    output_dir=OUTPUT_IMG_DIR,
-    thumbnail_dir=THUMBNAIL_DIR,
+    output_dir=None,
+    thumbnail_dir=None,
     image_ext=IMAGE_EXT,
     debug=False,
 ):
@@ -2342,8 +2329,11 @@ def save_filtered_image(
       image_ext: Extension to save image.
       debug: Show debug info if True.
     """
-    if debug or DEBUG:
+    if debug:
         t = Timer()
+
+    assert output_dir is not None, "Please specify `output_dir`"
+
     filepath = os.path.join(
         output_dir,
         slide_name + "-" + str(filter_num) + "-" + filter_text + "." + image_ext,
@@ -2353,13 +2343,13 @@ def save_filtered_image(
     else:
         pil_img = np_img
     save_img(pil_img, filepath)
-    if debug or DEBUG:
+    if debug:
         print(
             "%-20s | Time: %-14s  Name: %s" % ("Save Image", str(t.elapsed()), filepath)
         )
 
     if thumbnail_dir is not None:
-        if debug or DEBUG:
+        if debug:
             t1 = Timer()
         thumbnail_filepath = os.path.join(
             thumbnail_dir,
@@ -2372,7 +2362,7 @@ def save_filtered_image(
             + THUMBNAIL_EXT,
         )
         save_thumbnail(pil_img, THUMBNAIL_SIZE, thumbnail_filepath)
-        if debug or DEBUG:
+        if debug:
             print(
                 "%-20s | Time: %-14s  Name: %s"
                 % ("Save Thumbnail", str(t1.elapsed()), thumbnail_filepath)
@@ -2386,7 +2376,7 @@ def apply_filters_to_image_list(
     display,
     slide_list=None,
     roi_list=None,
-    output_dir=FILTER_DIR,
+    output_dir=None,
     output_roi_path_list=None,
     save_each_filter=False,
     config=None,
@@ -2423,7 +2413,7 @@ def apply_filters_to_image_list(
         print(
             "Output dir list is not the same length as input image list. Using FILTER_DIR as default."
         )
-        output_dir = [FILTER_DIR for i in range(len(image_list))]
+        output_dir = [output_dir for i in range(len(image_list))]
 
     for idx, (image_f, output_f, roi_f, slide, output_roi_f) in enumerate(
         zip(image_list, output_dir, roi_list, slide_list, output_roi_path_list)

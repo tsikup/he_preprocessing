@@ -7,22 +7,14 @@ Uses the spams package:
 
 http://spams-devel.gforge.inria.fr/index.html
 
-Use with python via e.g https://anaconda.org/conda-forge/python-spams
+Use with python via e.g https://anaconda.org/conda-forge/python-spams or spams-bin
 """
 
 from __future__ import division
-
 import spams
 import numpy as np
-import sys
-import os
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
-
-# import stain_utils as ut
 import he_preprocessing.normalization.stain_utils as ut
-from definitions import bcolors
+from he_preprocessing.constants import bcolors
 
 
 def get_stain_matrix(I, threshold=0.8, lamda=0.1):

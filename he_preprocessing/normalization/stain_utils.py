@@ -11,12 +11,6 @@ import numpy as np
 import cv2 as cv
 import spams
 import matplotlib.pyplot as plt
-import sys
-import os
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
-
 from he_preprocessing.utils.image import is_uint8_image
 
 

@@ -1235,8 +1235,14 @@ def resize_max_size(img, max_size):
     return resize_np(img, dim)
 
 
-def overlay_mask(img: Union[np.ndarray, Image.Image], mask: Union[np.ndarray, Image.Image], alpha=0.3, max_size=None):
+def overlay_mask(
+    img: Union[np.ndarray, Image.Image],
+    mask: Union[np.ndarray, Image.Image],
+    alpha=0.3,
+    max_size=None,
+):
     import cv2
+
     mask = np.array(mask)
     if mask.dtype == np.bool:
         mask = mask.astype(np.uint8) * 255
@@ -1246,7 +1252,7 @@ def overlay_mask(img: Union[np.ndarray, Image.Image], mask: Union[np.ndarray, Im
         img = img.astype(np.uint8)
     if len(mask.shape) != len(img.shape):
         mask = np.dstack((mask,) * img.shape[-1])
-    overlay = cv2.addWeighted(np.array(img), 1-alpha, mask, alpha, 0)
+    overlay = cv2.addWeighted(np.array(img), 1 - alpha, mask, alpha, 0)
     if max_size is not None:
         overlay = resize_max_size(overlay, max_size)
     return overlay

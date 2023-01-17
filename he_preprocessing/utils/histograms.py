@@ -5,8 +5,15 @@ from PIL import ImageFont, ImageDraw, Image
 import image as image_util
 from matplotlib import pyplot as plt
 
-from he_preprocessing.constants import SCALE_FACTOR, TILE_TEXT_W_BORDER, TILE_TEXT_H_BORDER, FONT_PATH, TILE_TEXT_SIZE, \
-    TILE_TEXT_COLOR, TILE_TEXT_BACKGROUND_COLOR
+from he_preprocessing.constants import (
+    SCALE_FACTOR,
+    TILE_TEXT_W_BORDER,
+    TILE_TEXT_H_BORDER,
+    FONT_PATH,
+    TILE_TEXT_SIZE,
+    TILE_TEXT_COLOR,
+    TILE_TEXT_BACKGROUND_COLOR,
+)
 
 
 def np_hsv_hue_histogram(h):
@@ -32,7 +39,9 @@ def np_hsv_hue_histogram(h):
 
     canvas.draw()
     w, h = canvas.get_width_height()
-    np_hist = np.fromstring(canvas.get_renderer().tostring_rgb(), dtype=np.uint8).reshape(h, w, 3)
+    np_hist = np.fromstring(
+        canvas.get_renderer().tostring_rgb(), dtype=np.uint8
+    ).reshape(h, w, 3)
     plt.close(figure)
     image_util.np_info(np_hist)
     return np_hist
@@ -40,16 +49,16 @@ def np_hsv_hue_histogram(h):
 
 def np_histogram(data, title, bins="auto"):
     """
-   Create Matplotlib histogram and return it as a NumPy array image.
+    Create Matplotlib histogram and return it as a NumPy array image.
 
-   Args:
-     data: Data to plot in the histogram.
-     title: Title of the histogram.
-     bins: Number of histogram bins, "auto" by default.
+    Args:
+      data: Data to plot in the histogram.
+      title: Title of the histogram.
+      bins: Number of histogram bins, "auto" by default.
 
-   Returns:
-     Matplotlib histogram as a NumPy array image.
-   """
+    Returns:
+      Matplotlib histogram as a NumPy array image.
+    """
     figure = plt.figure()
     canvas = figure.canvas
     plt.hist(data, bins=bins)
@@ -57,7 +66,9 @@ def np_histogram(data, title, bins="auto"):
 
     canvas.draw()
     w, h = canvas.get_width_height()
-    np_hist = np.fromstring(canvas.get_renderer().tostring_rgb(), dtype=np.uint8).reshape(h, w, 3)
+    np_hist = np.fromstring(
+        canvas.get_renderer().tostring_rgb(), dtype=np.uint8
+    ).reshape(h, w, 3)
     plt.close(figure)
     image_util.np_info(np_hist)
     return np_hist
@@ -194,7 +205,7 @@ def display_image_with_hsv_hue_histogram(np_rgb, text=None, scale_up=False):
         t_i = np.zeros([t_i_r, t_i_c, img_ch], dtype=np.uint8)
         t_i.fill(255)
         t_i[0:t_r, 0:t_c] = np_t
-        t_i[t_r:t_r + img_r, 0:img_c] = np_rgb
+        t_i[t_r : t_r + img_r, 0:img_c] = np_rgb
         np_rgb = t_i  # for simplicity assign title+image to image
         img_r, img_c, img_ch = np_rgb.shape
 
@@ -230,7 +241,7 @@ def display_image(np_rgb, text=None, scale_up=False):
         t_i = np.zeros([t_i_r, t_i_c, img_ch], dtype=np.uint8)
         t_i.fill(255)
         t_i[0:t_r, 0:t_c] = np_t
-        t_i[t_r:t_r + img_r, 0:img_c] = np_rgb
+        t_i[t_r : t_r + img_r, 0:img_c] = np_rgb
         np_rgb = t_i
 
     pil_img = image_util.np_to_pil(np_rgb)
@@ -267,7 +278,7 @@ def display_image_with_hsv_histograms(np_rgb, text=None, scale_up=False):
         t_i = np.zeros([t_i_r, t_i_c, img_ch], dtype=np.uint8)
         t_i.fill(255)
         t_i[0:t_r, 0:t_c] = np_t
-        t_i[t_r:t_r + img_r, 0:img_c] = np_rgb
+        t_i[t_r : t_r + img_r, 0:img_c] = np_rgb
         np_rgb = t_i  # for simplicity assign title+image to image
         img_r, img_c, img_ch = np_rgb.shape
 
@@ -276,8 +287,8 @@ def display_image_with_hsv_histograms(np_rgb, text=None, scale_up=False):
     hists = np.zeros([hists_r, hists_c, img_ch], dtype=np.uint8)
 
     hists[0:h_r, 0:h_c] = np_h
-    hists[h_r:h_r + s_r, 0:s_c] = np_s
-    hists[h_r + s_r:h_r + s_r + v_r, 0:v_c] = np_v
+    hists[h_r : h_r + s_r, 0:s_c] = np_s
+    hists[h_r + s_r : h_r + s_r + v_r, 0:v_c] = np_v
 
     r = max(img_r, hists_r)
     c = img_c + hists_c
@@ -318,7 +329,7 @@ def display_image_with_rgb_histograms(np_rgb, text=None, scale_up=False):
         t_i = np.zeros([t_i_r, t_i_c, img_ch], dtype=np.uint8)
         t_i.fill(255)
         t_i[0:t_r, 0:t_c] = np_t
-        t_i[t_r:t_r + img_r, 0:img_c] = np_rgb
+        t_i[t_r : t_r + img_r, 0:img_c] = np_rgb
         np_rgb = t_i  # for simplicity assign title+image to image
         img_r, img_c, img_ch = np_rgb.shape
 
@@ -327,8 +338,8 @@ def display_image_with_rgb_histograms(np_rgb, text=None, scale_up=False):
     hists = np.zeros([hists_r, hists_c, img_ch], dtype=np.uint8)
 
     hists[0:r_r, 0:r_c] = np_r
-    hists[r_r:r_r + g_r, 0:g_c] = np_g
-    hists[r_r + g_r:r_r + g_r + b_r, 0:b_c] = np_b
+    hists[r_r : r_r + g_r, 0:g_c] = np_g
+    hists[r_r + g_r : r_r + g_r + b_r, 0:b_c] = np_b
 
     r = max(img_r, hists_r)
     c = img_c + hists_c
@@ -340,8 +351,15 @@ def display_image_with_rgb_histograms(np_rgb, text=None, scale_up=False):
     pil_combo.show()
 
 
-def pil_text(text, w_border=TILE_TEXT_W_BORDER, h_border=TILE_TEXT_H_BORDER, font_path=FONT_PATH,
-             font_size=TILE_TEXT_SIZE, text_color=TILE_TEXT_COLOR, background=TILE_TEXT_BACKGROUND_COLOR):
+def pil_text(
+    text,
+    w_border=TILE_TEXT_W_BORDER,
+    h_border=TILE_TEXT_H_BORDER,
+    font_path=FONT_PATH,
+    font_size=TILE_TEXT_SIZE,
+    text_color=TILE_TEXT_COLOR,
+    background=TILE_TEXT_BACKGROUND_COLOR,
+):
     """
     Obtain a PIL image representation of text.
 
@@ -367,8 +385,15 @@ def pil_text(text, w_border=TILE_TEXT_W_BORDER, h_border=TILE_TEXT_H_BORDER, fon
     return image
 
 
-def np_text(text, w_border=TILE_TEXT_W_BORDER, h_border=TILE_TEXT_H_BORDER, font_path=FONT_PATH,
-            font_size=TILE_TEXT_SIZE, text_color=TILE_TEXT_COLOR, background=TILE_TEXT_BACKGROUND_COLOR):
+def np_text(
+    text,
+    w_border=TILE_TEXT_W_BORDER,
+    h_border=TILE_TEXT_H_BORDER,
+    font_path=FONT_PATH,
+    font_size=TILE_TEXT_SIZE,
+    text_color=TILE_TEXT_COLOR,
+    background=TILE_TEXT_BACKGROUND_COLOR,
+):
     """
     Obtain a NumPy array image representation of text.
 
@@ -384,8 +409,9 @@ def np_text(text, w_border=TILE_TEXT_W_BORDER, h_border=TILE_TEXT_H_BORDER, font
     Returns:
       NumPy array representing the text.
     """
-    pil_img = pil_text(text, w_border, h_border, font_path, font_size,
-                       text_color, background)
+    pil_img = pil_text(
+        text, w_border, h_border, font_path, font_size, text_color, background
+    )
     np_img = image_util.pil_to_np(pil_img)
     return np_img
 
@@ -402,14 +428,24 @@ def display_tile(tile, rgb_histograms=True, hsv_histograms=True):
 
     text = "S%03d R%03d C%03d\n" % (tile.slide_num, tile.r, tile.c)
     text += "Score:%4.2f Tissue:%5.2f%% CF:%2.0f SVF:%4.2f QF:%4.2f\n" % (
-        tile.score, tile.tissue_percentage, tile.color_factor, tile.s_and_v_factor, tile.quantity_factor)
+        tile.score,
+        tile.tissue_percentage,
+        tile.color_factor,
+        tile.s_and_v_factor,
+        tile.quantity_factor,
+    )
     text += "Rank #%d of %d" % (tile.rank, tile.tile_summary.num_tiles())
 
     np_scaled_tile = tile.get_np_scaled_tile()
     if np_scaled_tile is not None:
-        small_text = text + "\n \nSmall Tile (%d x %d)" % (np_scaled_tile.shape[1], np_scaled_tile.shape[0])
+        small_text = text + "\n \nSmall Tile (%d x %d)" % (
+            np_scaled_tile.shape[1],
+            np_scaled_tile.shape[0],
+        )
         if rgb_histograms and hsv_histograms:
-            display_image_with_rgb_and_hsv_histograms(np_scaled_tile, small_text, scale_up=True)
+            display_image_with_rgb_and_hsv_histograms(
+                np_scaled_tile, small_text, scale_up=True
+            )
         elif rgb_histograms:
             display_image_with_rgb_histograms(np_scaled_tile, small_text, scale_up=True)
         elif hsv_histograms:
@@ -418,7 +454,10 @@ def display_tile(tile, rgb_histograms=True, hsv_histograms=True):
             display_image(np_scaled_tile, small_text, scale_up=True)
 
     np_tile = tile.get_np_tile()
-    text += " based on small tile\n \nLarge Tile (%d x %d)" % (np_tile.shape[1], np_tile.shape[0])
+    text += " based on small tile\n \nLarge Tile (%d x %d)" % (
+        np_tile.shape[1],
+        np_tile.shape[0],
+    )
     if rgb_histograms and hsv_histograms:
         display_image_with_rgb_and_hsv_histograms(np_tile, text)
     elif rgb_histograms:
@@ -466,7 +505,7 @@ def display_image_with_rgb_and_hsv_histograms(np_rgb, text=None, scale_up=False)
         t_i = np.zeros([t_i_r, t_i_c, img_ch], dtype=np.uint8)
         t_i.fill(255)
         t_i[0:t_r, 0:t_c] = np_t
-        t_i[t_r:t_r + img_r, 0:img_c] = np_rgb
+        t_i[t_r : t_r + img_r, 0:img_c] = np_rgb
         np_rgb = t_i  # for simplicity assign title+image to image
         img_r, img_c, img_ch = np_rgb.shape
 
@@ -474,22 +513,22 @@ def display_image_with_rgb_and_hsv_histograms(np_rgb, text=None, scale_up=False)
     rgb_hists_r = r_r + g_r + b_r
     rgb_hists = np.zeros([rgb_hists_r, rgb_hists_c, img_ch], dtype=np.uint8)
     rgb_hists[0:r_r, 0:r_c] = np_r
-    rgb_hists[r_r:r_r + g_r, 0:g_c] = np_g
-    rgb_hists[r_r + g_r:r_r + g_r + b_r, 0:b_c] = np_b
+    rgb_hists[r_r : r_r + g_r, 0:g_c] = np_g
+    rgb_hists[r_r + g_r : r_r + g_r + b_r, 0:b_c] = np_b
 
     hsv_hists_c = max(h_c, s_c, v_c)
     hsv_hists_r = h_r + s_r + v_r
     hsv_hists = np.zeros([hsv_hists_r, hsv_hists_c, img_ch], dtype=np.uint8)
     hsv_hists[0:h_r, 0:h_c] = np_h
-    hsv_hists[h_r:h_r + s_r, 0:s_c] = np_s
-    hsv_hists[h_r + s_r:h_r + s_r + v_r, 0:v_c] = np_v
+    hsv_hists[h_r : h_r + s_r, 0:s_c] = np_s
+    hsv_hists[h_r + s_r : h_r + s_r + v_r, 0:v_c] = np_v
 
     r = max(img_r, rgb_hists_r, hsv_hists_r)
     c = img_c + rgb_hists_c + hsv_hists_c
     combo = np.zeros([r, c, img_ch], dtype=np.uint8)
     combo.fill(255)
     combo[0:img_r, 0:img_c] = np_rgb
-    combo[0:rgb_hists_r, img_c:img_c + rgb_hists_c] = rgb_hists
-    combo[0:hsv_hists_r, img_c + rgb_hists_c:c] = hsv_hists
+    combo[0:rgb_hists_r, img_c : img_c + rgb_hists_c] = rgb_hists
+    combo[0:hsv_hists_r, img_c + rgb_hists_c : c] = hsv_hists
     pil_combo = image_util.np_to_pil(combo)
     pil_combo.show()
