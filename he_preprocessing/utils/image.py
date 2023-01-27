@@ -635,7 +635,7 @@ def keep_tile(
             tile = pad_image(tile, tile_size, 255)
 
     if (roi_mask is not None or roi_mask != np.array(None)) and np.any(
-        uint8_to_bool(roi_mask) == False
+        uint8_to_bool(roi_mask) is False
     ):
         tile[np.where(uint8_to_bool(roi_mask) == False)] = [255, 255, 255]
 
