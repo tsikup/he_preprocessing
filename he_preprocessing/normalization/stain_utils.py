@@ -52,11 +52,11 @@ def show(image, now=True, fig_size=(10, 10)):
     """
     image = image.astype(np.float32)
     m, M = image.min(), image.max()
-    if fig_size != None:
+    if fig_size is not None:
         plt.rcParams["figure.figsize"] = (fig_size[0], fig_size[1])
     plt.imshow((image - m) / (M - m), cmap="gray")
     plt.axis("off")
-    if now == True:
+    if now is True:
         plt.show()
 
 
@@ -88,13 +88,13 @@ def patch_grid(ims, width=5, sub_sample=None, rand=False, save_name=None):
     :return:
     """
     N0 = np.shape(ims)[0]
-    if sub_sample == None:
+    if sub_sample is None:
         N = N0
         stack = ims
-    elif sub_sample != None and rand == False:
+    elif sub_sample is not None and rand is False:
         N = sub_sample
         stack = ims[:N]
-    elif sub_sample != None and rand == True:
+    elif sub_sample is not None and rand is True:
         N = sub_sample
         idx = np.random.choice(range(N), sub_sample, replace=False)
         stack = ims[idx]
@@ -105,7 +105,7 @@ def patch_grid(ims, width=5, sub_sample=None, rand=False, save_name=None):
         plt.subplot(height, width, i + 1)
         im = stack[i]
         show(im, now=False, fig_size=None)
-    if save_name != None:
+    if save_name is not None:
         plt.savefig(save_name)
     plt.show()
 
