@@ -704,7 +704,8 @@ def is_blurry(np_img, threshold: int, normalize: bool = True, masked=False, verb
 
 def normalize_per_tissue_area(np_img, value):
     grayscale = get_tissue_mask(np_img, method="od")
-    return value / (np.count_nonzero(grayscale) + 1e-20)
+    nonzero = np.count_nonzero(grayscale)
+    return value / nonzero if nonzero > 0 else np.Inf
 
 
 # Create Tile Generator
