@@ -1911,11 +1911,15 @@ def apply_image_filters(
         )
 
     if filters2apply["stain_norm"]:
-        stain_normalizer = StainNormalizer(
-            luminosity=filters2apply["stain_norm_luminosity"],
-            method=filters2apply["stain_norm_method"],
-            reference_dir=filters2apply["stain_norm_reference_dir"],
-        )
+        try:
+            if filters2apply["stain_normalizer"] is not None:
+                stain_normalizer = filters2apply["stain_normalizer"]
+        except KeyError:
+            stain_normalizer = StainNormalizer(
+                luminosity=filters2apply["stain_norm_luminosity"],
+                method=filters2apply["stain_norm_method"],
+                reference_dir=filters2apply["stain_norm_reference_dir"],
+            )
         rgb = stain_normalizer.transform(rgb.astype(np.uint8), slide=slide)
         if filters2apply["stain_norm_mask"]:
             rgb = ut_image.mask_rgb(
