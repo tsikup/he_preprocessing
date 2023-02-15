@@ -52,25 +52,31 @@ class Normalizer(object):
     A stain normalization object
     """
 
-    def __init__(self, standardize_brightness=True):
+    def __init__(
+        self, standardize_brightness=True, dataset_stain_matrix_reference=None
+    ):
         self.stain_matrix_target = None
         self.standardize_brightness = standardize_brightness
+        self.strain_matrix_target = dataset_stain_matrix_reference
 
     def fit(self, target):
         if self.standardize_brightness:
             target, _ = ut.standardize_brightness(target)
         self.stain_matrix_target = get_stain_matrix(target)
 
-    def get_99_percentile_saturation_vector(self):
-        raise NotImplementedError
+    def get_stain_vectors(self):
+        return self.stain_matrix_target
 
     def target_stains(self):
         return ut.OD_to_RGB(self.stain_matrix_target)
 
-    def transform(self, I):
+    def transform(self, I, slide_stain_matrix_reference=None):
         if self.standardize_brightness:
             I, _ = ut.standardize_brightness(I)
-        stain_matrix_source = get_stain_matrix(I)
+        if slide_stain_matrix_reference is not None:
+            stain_matrix_source = slide_stain_matrix_reference
+        else:
+            stain_matrix_source = get_stain_matrix(I)
         source_concentrations = ut.get_concentrations(I, stain_matrix_source)
         return (
             255

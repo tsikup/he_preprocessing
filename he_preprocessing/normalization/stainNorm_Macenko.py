@@ -94,6 +94,9 @@ class Normalizer(object):
             target, self.stain_matrix_target
         )
 
+    def get_stain_vectors(self):
+        return self.get_99_percentile_saturation_vector(), self.get_he_vector()
+
     def get_99_percentile_saturation_vector(self):
         maxC_target = np.percentile(self.target_concentrations, 99, axis=0).reshape(
             (1, 2)

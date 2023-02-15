@@ -173,6 +173,8 @@ class StainNormalizer:
         self.reference_dir = reference_dir
         self.dataset_maxC_reference = None
         self.stain_matrix_reference = None
+        self.dataset_means_reference = None
+        self.dataset_stds_reference = None
         self.target = target
         self.method = method
 
@@ -183,31 +185,61 @@ class StainNormalizer:
                     dataset_level_ref, "stain_vectors_dataset_level_reference.csv"
                 )
             )
-            dataset_maxC_reference = np.fromstring(
-                dataset_df[["saturation_vector_0", "saturation_vector_1"]].to_numpy()[0]
-            ).reshape((1, 2))
-            dataset_stain_matrix_reference = np.fromstring(
-                dataset_df[
-                    [
-                        "he_matrix_0",
-                        "he_matrix_1",
-                        "he_matrix_2",
-                        "he_matrix_3",
-                        "he_matrix_4",
-                        "he_matrix_5",
+            if self.method == "macenko":
+                dataset_maxC_reference = np.fromstring(
+                    dataset_df[
+                        ["saturation_vector_0", "saturation_vector_1"]
+                    ].to_numpy()[0]
+                ).reshape((1, 2))
+                dataset_stain_matrix_reference = (
+                    dataset_df[
+                        [
+                            "he_matrix_0",
+                            "he_matrix_1",
+                            "he_matrix_2",
+                            "he_matrix_3",
+                            "he_matrix_4",
+                            "he_matrix_5",
+                        ]
                     ]
+                    .to_numpy()[0]
+                    .reshape((2, 3))
+                )
+                self.dataset_maxC_reference = dataset_maxC_reference
+                self.stain_matrix_reference = dataset_stain_matrix_reference
+            elif self.method == "vahadane":
+                self.stain_matrix_reference = (
+                    dataset_df[
+                        [
+                            "stain_matrix_0",
+                            "stain_matrix_1",
+                            "stain_matrix_2",
+                            "stain_matrix_3",
+                            "stain_matrix_4",
+                            "stain_matrix_5",
+                        ]
+                    ]
+                    .to_numpy()[0]
+                    .reshape((2, 3))
+                )
+            elif self.method == "reinhard":
+                self.dataset_means_reference = dataset_df[
+                    ["mean_0", "mean_1", "mean_2"]
                 ].to_numpy()[0]
-            ).reshape((2, 3))
-            self.dataset_maxC_reference = dataset_maxC_reference
-            self.stain_matrix_reference = dataset_stain_matrix_reference
+                self.dataset_stds_reference = dataset_df[
+                    ["std_0", "std_1", "std_2"]
+                ].to_numpy()[0]
 
         if self.method == "reinhard":
             self.normalizer = stainNorm_Reinhard.Normalizer(
-                standardize_brightness=self.luminosity
+                standardize_brightness=self.luminosity,
+                dataset_means=self.dataset_means_reference,
+                dataset_stds=self.dataset_stds_reference,
             )
         elif self.method == "vahadane":
             self.normalizer = stainNorm_Vahadane.Normalizer(
-                standardize_brightness=self.luminosity
+                standardize_brightness=self.luminosity,
+                dataset_stain_matrix_reference=self.stain_matrix_reference,
             )
         elif self.method == "macenko":
             self.normalizer = stainNorm_Macenko.Normalizer(
@@ -220,36 +252,20 @@ class StainNormalizer:
             self.fit(target)
 
     def fit(self, target):
-        if self.method == "reinhard":
-            self.normalizer.fit(target)
-        elif self.method == "vahadane":
-            self.normalizer.fit(target)
-        elif self.method == "macenko":
-            self.normalizer.fit(target)
-        elif self.method == "custom_macenko":
+        if self.method == "custom_macenko":
             pass
         else:
             self.normalizer.fit(target)
 
-    def get_99_percentile_saturation_vector(self):
+    def get_stain_vectors(self):
         """
-        Get 99th percentile of saturation vector.
+        Get the target estimated stain vector.
         Args:
             I: image numpy array
         Returns:
-            99th percentile of saturation vector
+            np.ndarray
         """
-        return self.normalizer.get_99_percentile_saturation_vector()
-
-    def get_he_vector(self):
-        """
-        Get H&E stain vectors.
-        Args:
-            I: image numpy array
-        Returns:
-            HE stain vectors
-        """
-        return self.normalizer.get_he_vector()
+        return self.normalizer.get_stain_vectors()
 
     def transform(
         self,
@@ -283,7 +299,7 @@ class StainNormalizer:
                 dataset_df = dataset_df.iloc[0]
 
             if self.method == "macenko":
-                slide_stain_matrix_reference = np.fromstring(
+                slide_stain_matrix_reference = (
                     dataset_df[
                         [
                             "he_matrix_0",
@@ -293,17 +309,39 @@ class StainNormalizer:
                             "he_matrix_4",
                             "he_matrix_5",
                         ]
-                    ].to_numpy()[0]
-                ).reshape((2, 3))
+                    ]
+                    .to_numpy()[0]
+                    .reshape((2, 3))
+                )
+            elif self.method == "vahadane":
+                slide_stain_matrix_reference = (
+                    dataset_df[
+                        [
+                            "stain_matrix_0",
+                            "stain_matrix_1",
+                            "stain_matrix_2",
+                            "stain_matrix_3",
+                            "stain_matrix_4",
+                            "stain_matrix_5",
+                        ]
+                    ]
+                    .to_numpy()[0]
+                    .reshape((2, 3))
+                )
+            elif self.method == "reinhard":
+                slide_means = dataset_df[["mean_0", "mean_1", "mean_2"]].to_numpy()[0]
+                slide_stds = dataset_df[["std_0", "std_1", "std_2"]].to_numpy()[0]
 
         # Normalize stain
         if self.method == "custom_macenko":
             transformed = custom_macenko(to_transform, stain_method=stain_method)
-        elif self.method == "macenko":
+        elif self.method == "reinhard":
+            transformed = self.normalizer.transform(
+                to_transform, slide_means=slide_means, slide_stds=slide_stds
+            )
+        else:
             transformed = self.normalizer.transform(
                 to_transform, slide_stain_matrix_reference=slide_stain_matrix_reference
             )
-        else:
-            transformed = self.normalizer.transform(to_transform)
 
         return transformed

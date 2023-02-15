@@ -61,28 +61,36 @@ class Normalizer(object):
     A stain normalization object
     """
 
-    def __init__(self, standardize_brightness=True):
+    def __init__(
+        self, standardize_brightness=True, dataset_means=None, dataset_stds=None
+    ):
         self.target_means = None
         self.target_stds = None
         self.standardize_brightness = standardize_brightness
+        self.dataset_means = dataset_means
+        self.dataset_stds = dataset_stds
 
     def fit(self, target):
         if self.standardize_brightness:
             target, _ = ut.standardize_brightness(target)
         means, stds = get_mean_std(target)
-        self.target_means = means
-        self.target_stds = stds
+        self.target_means = np.array(means).reshape(-1)
+        self.target_stds = np.array(stds).reshape(-1)
 
-    def get_99_percentile_saturation_vector(self):
-        raise NotImplementedError
+    def get_stain_vectors(self):
+        return self.target_means, self.target_stds
 
-    def transform(self, I):
+    def transform(self, I, slide_means=None, slide_stds=None):
         if self.standardize_brightness:
             I, _ = ut.standardize_brightness(I)
         I_copy = np.copy(I)
         try:
             I1, I2, I3 = lab_split(I)
-            means, stds = get_mean_std(I)
+            if slide_means is not None and slide_stds is not None:
+                means = slide_means
+                stds = slide_stds
+            else:
+                means, stds = get_mean_std(I)
             norm1 = (
                 (I1 - means[0]) * (self.target_stds[0] / stds[0])
             ) + self.target_means[0]
