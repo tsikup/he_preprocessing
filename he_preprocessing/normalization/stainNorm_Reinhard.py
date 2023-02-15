@@ -64,11 +64,9 @@ class Normalizer(object):
     def __init__(
         self, standardize_brightness=True, dataset_means=None, dataset_stds=None
     ):
-        self.target_means = None
-        self.target_stds = None
+        self.target_means = dataset_means
+        self.target_stds = dataset_stds
         self.standardize_brightness = standardize_brightness
-        self.dataset_means = dataset_means
-        self.dataset_stds = dataset_stds
 
     def fit(self, target):
         if self.standardize_brightness:

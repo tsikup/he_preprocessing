@@ -55,9 +55,8 @@ class Normalizer(object):
     def __init__(
         self, standardize_brightness=True, dataset_stain_matrix_reference=None
     ):
-        self.stain_matrix_target = None
+        self.stain_matrix_target = dataset_stain_matrix_reference
         self.standardize_brightness = standardize_brightness
-        self.strain_matrix_target = dataset_stain_matrix_reference
 
     def fit(self, target):
         if self.standardize_brightness:
