@@ -1918,7 +1918,12 @@ def apply_image_filters(
             stain_normalizer = StainNormalizer(
                 luminosity=filters2apply["stain_norm_luminosity"],
                 method=filters2apply["stain_norm_method"],
-                reference_dir=filters2apply["stain_norm_reference_dir"],
+                dataset_level_stain_csv=filters2apply["stain_norm_reference"][
+                    "dataset_level"
+                ],
+                slide_level_stain_csv=filters2apply["stain_norm_reference"][
+                    "slide_level"
+                ],
             )
         rgb = stain_normalizer.transform(rgb.astype(np.uint8), slide=slide)
         if filters2apply["stain_norm_mask"]:
