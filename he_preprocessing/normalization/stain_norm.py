@@ -153,7 +153,8 @@ class StainNormalizer:
         target=None,
         luminosity=True,
         method="macenko",
-        reference_dir=None,
+        dataset_level_stain_csv=None,
+        slide_level_stain_csv=None,
     ):
         """
         Normalize the staining of H&E histology slides.
@@ -170,7 +171,8 @@ class StainNormalizer:
         """
         self.normalizer = None
         self.luminosity = luminosity
-        self.reference_dir = reference_dir
+        self.dataset_level_stain_csv = dataset_level_stain_csv
+        self.slide_level_stain_csv = slide_level_stain_csv
         self.dataset_maxC_reference = None
         self.stain_matrix_reference = None
         self.dataset_means_reference = None
@@ -178,13 +180,8 @@ class StainNormalizer:
         self.target = target
         self.method = method
 
-        if reference_dir is not None:
-            dataset_level_ref = reference_dir
-            dataset_df = pd.read_csv(
-                os.path.join(
-                    dataset_level_ref, "stain_vectors_dataset_level_reference.csv"
-                )
-            )
+        if self.dataset_level_stain_csv is not None:
+            dataset_df = pd.read_csv(self.dataset_level_stain_csv)
             if self.method == "macenko":
                 dataset_maxC_reference = np.fromstring(
                     dataset_df[
@@ -287,12 +284,8 @@ class StainNormalizer:
         """
         slide_stain_matrix_reference = None
 
-        if self.reference_dir is not None:
-            dataset_df = pd.read_csv(
-                os.path.join(
-                    self.reference_dir, "stain_vectors_slide_level_reference.csv"
-                )
-            )
+        if self.slide_level_stain_csv is not None:
+            dataset_df = pd.read_csv(self.slide_level_stain_csv)
             if slide is not None:
                 dataset_df = dataset_df.loc[dataset_df["slide"] == slide]
             else:
