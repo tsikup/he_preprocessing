@@ -16,6 +16,7 @@
 import functools
 import multiprocessing
 import os
+import pickle
 from pathlib import Path
 import math
 import cv2 as cv
@@ -1913,7 +1914,13 @@ def apply_image_filters(
     if filters2apply["stain_norm"]:
         try:
             if filters2apply["stain_normalizer"] is not None:
-                stain_normalizer = filters2apply["stain_normalizer"]
+                if isinstance(filters2apply["stain_normalizer"], str) and filters2apply[
+                    "stain_normalizer"
+                ].endswith("pickle"):
+                    with open(filters2apply["stain_normalizer"], "rb") as f:
+                        stain_normalizer = pickle.load(f)
+                else:
+                    stain_normalizer = filters2apply["stain_normalizer"]
         except KeyError:
             stain_normalizer = StainNormalizer(
                 luminosity=filters2apply["stain_norm_luminosity"],
