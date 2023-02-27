@@ -1912,7 +1912,7 @@ def apply_image_filters(
         )
 
     if filters2apply["stain_norm"]:
-        try:
+        if "stain_normalizer" in filters2apply.keys():
             if filters2apply["stain_normalizer"] is not None:
                 if isinstance(filters2apply["stain_normalizer"], str) and filters2apply[
                     "stain_normalizer"
@@ -1921,7 +1921,7 @@ def apply_image_filters(
                         stain_normalizer = pickle.load(f)
                 else:
                     stain_normalizer = filters2apply["stain_normalizer"]
-        except KeyError:
+        else:
             stain_normalizer = StainNormalizer(
                 luminosity=filters2apply["stain_norm_luminosity"],
                 method=filters2apply["stain_norm_method"],
