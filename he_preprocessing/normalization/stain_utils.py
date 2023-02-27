@@ -200,7 +200,7 @@ def sign(x):
         return 0
 
 
-def get_concentrations(I, stain_matrix, lamda=0.01):
+def get_concentrations(I, stain_matrix, lamda=0.01, numThreads=1):
     """
     Get concentrations, a npix x 2 matrix
     :param I:
@@ -209,5 +209,5 @@ def get_concentrations(I, stain_matrix, lamda=0.01):
     """
     OD = RGB_to_OD(I).reshape((-1, 3))
     return (
-        spams.lasso(OD.T, D=stain_matrix.T, mode=2, lambda1=lamda, pos=True).toarray().T
+        spams.lasso(OD.T, D=stain_matrix.T, mode=2, lambda1=lamda, pos=True, numThreads=numThreads).toarray().T
     )
