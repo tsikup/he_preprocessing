@@ -33,7 +33,7 @@ import skimage.morphology as sk_morphology
 import skimage.segmentation as sk_segmentation
 from PIL import Image, ImageDraw
 from shapely import geometry
-from utils.chat import send_noti_to_telegram
+from my_utils.chat import send_noti_to_telegram
 
 from he_preprocessing.constants import (
     CELL_COLORS,
