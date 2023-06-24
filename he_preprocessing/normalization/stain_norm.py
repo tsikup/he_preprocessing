@@ -286,8 +286,9 @@ class StainNormalizer:
 
         if self.slide_level_stain_csv is not None:
             dataset_df = pd.read_csv(self.slide_level_stain_csv)
+            dataset_df['slide'] = dataset_df['slide'].astype(str)
             if slide is not None:
-                dataset_df = dataset_df.loc[dataset_df["slide"] == slide]
+                dataset_df = dataset_df.loc[dataset_df["slide"] == str(slide)]
             else:
                 dataset_df = dataset_df.iloc[0]
 
