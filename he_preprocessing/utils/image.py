@@ -274,6 +274,21 @@ def mask_gray(gray, mask):
     return result
 
 
+def rgb_to_hues(rgb):
+    """
+    Convert RGB NumPy array to 1-dimensional array of hue values (HSV H values in degrees).
+
+    Args:
+      rgb: RGB image as a NumPy array
+
+    Returns:
+      1-dimensional array of hue values in degrees
+    """
+    hsv = filter.filter_rgb_to_hsv(rgb, debug=False)
+    h = filter.filter_hsv_to_h(hsv, debug=False)
+    return h
+
+
 def rgb2hed(np_img):
     """
     Filter RGB channels to HED (Hematoxylin - Eosin - Diaminobenzidine) channels.
@@ -512,7 +527,8 @@ def rgb2gray_2(tile):
     # Apply morphology for same reasons as above.
     tile = sk_morphology.binary_closing(tile, sk_morphology.disk(2))
     tile = sk_morphology.binary_dilation(tile, sk_morphology.disk(2))
-    tile = binary_fill_holes(tile)
+    tile = binary_fill_holes(tile, sk_morphology.disk(10))
+    tile = sk_morphology.binary_closing(tile, sk_morphology.disk(2))
     return tile
 
 
