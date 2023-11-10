@@ -17,7 +17,7 @@ import he_preprocessing.normalization.stain_utils as ut
 from he_preprocessing.constants import bcolors
 
 
-def get_stain_matrix(I, threshold=0.8, lamda=0.1):
+def get_stain_matrix(I, threshold=0.8, lamda=0.1, numThreads=1):
     """
     Get 2x3 stain matrix. First row H and second row E
     :param I:
@@ -37,6 +37,7 @@ def get_stain_matrix(I, threshold=0.8, lamda=0.1):
         posAlpha=True,
         posD=True,
         verbose=False,
+        numThreads=numThreads,
     ).T
     if dictionary[0, 0] < dictionary[1, 0]:
         dictionary = dictionary[[1, 0], :]
