@@ -1765,6 +1765,40 @@ def generate_cell_mask(img_path, out_path, save_colors=False, debug=False):
     return np.array(nucleusOverlay), np.array(cellOverlay)
 
 
+def apply_image_original_filters(np_img):
+    """
+    Apply filters to image as NumPy array.
+    Args:
+      np_img: Image as NumPy array.
+    Returns:
+      Resulting filtered image as a NumPy array.
+    """
+    rgb = np_img
+
+    mask_not_green = filter_green_channel(rgb)
+    mask_not_gray = filter_grays(rgb)
+    mask_no_red_pen = filter_red_pen(rgb)
+    mask_no_green_pen = filter_green_pen(rgb)
+    mask_no_blue_pen = filter_blue_pen(rgb)
+
+    mask_gray_green_pens = (
+        mask_not_gray
+        & mask_not_green
+        & mask_no_red_pen
+        & mask_no_green_pen
+        & mask_no_blue_pen
+    )
+
+    mask_remove_small = filter_remove_small_objects(
+        mask_gray_green_pens, min_size=500, output_type="bool"
+    )
+
+    rgb_remove_small = ut_image.mask_rgb(rgb, mask_remove_small)
+
+    img = rgb_remove_small
+    return img
+
+
 def apply_image_filters(
     np_img,
     roi_mask=None,
@@ -2174,14 +2208,6 @@ def apply_filters_to_image(
 
     if save:
         result_path = os.path.join(output_dir, image_name + "." + image_ext)
-        #
-        # if os.path.exists(result_path):
-        #     return None, None
-
-    # if filters2apply['keep_tile_percentage'] is not None:
-    #     if not keep_tile(np_orig, tile_size=filters2apply["tileSize"], tissue_threshold=filters2apply['keep_tile_percentage'], roi_mask=np_roi, pad=True, debug=debug):
-    #         print("%s Name: %s. Discarding...\n" % ("Tile tissue percentage below threshold.", image_name))
-    #         return None, None
 
     filtered_np_img = apply_image_filters(
         np_orig,
@@ -2197,12 +2223,6 @@ def apply_filters_to_image(
     )
 
     if save:
-        # # If image is blurry, discard it.
-        # if filters2apply["blurriness_threshold"] is not None:
-        #     if ut_image.is_blurry(np_img, threshold=filters2apply["blurriness_threshold"], verbose=0, debug=debug):
-        #         print("Image %s is blurry. Discarding...\n" % image_name)
-        #         return None, None
-
         if debug:
             t1 = Timer()
         save_img(filtered_np_img, result_path)
